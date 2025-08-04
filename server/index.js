@@ -146,6 +146,21 @@ app.get('/api/sessions', async (req, res) => {
     }
 })
 
+app.get('/api/agent-logs', async (req, res) => {
+    const { sessionId } = req.query
+    if (!sessionId) return res.json([])
+    const logs = await fetchAll(TABLE_AGENT_LOGS, { filterByFormula: `{Session} = '${sessionId}'` })
+    res.json(logs.map(r => ({
+        id: r.id,
+        agentName: r.fields['Agent Name'] || '',
+        model: r.fields['Model'] || '',
+        promptTokens: r.fields['Prompt Token Count'] || 0,
+        cachedTokens: r.fields['Cached Token Count'] || 0,
+        completionTokens: r.fields['Completion Token Count'] || 0,
+        cost: parseFloat(String(r.fields['Cost (USD)'] || '0').replace('$', '')) || 0,
+    })))
+})
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
 })
